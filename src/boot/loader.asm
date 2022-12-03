@@ -90,12 +90,84 @@ protect_mode:
     mov fs, ax
     mov gs, ax
     mov ss, ax; 初始化段寄存器
-    xchg bx,bx
     mov esp, 0x10000; 修改栈顶
 
-    xchg bx,bx
-    jmp $
+    ;将硬盘读到内存
+    mov edi,0x10000 ;读取到目标内存
+    mov ecx,10 ;起始扇区
+    mov bl,200 ;扇区数量
+    call read_disk 
     
+    jmp dword code_selector:0x10000
+    ud2
+    
+read_disk:
+    mov dx,0x1f2
+    mov al,bl
+    out dx,al
+
+    inc dx ;0x1f3
+    mov al,cl ;起始扇区的前八位
+    out dx,al
+
+    inc dx ;0x1f4
+    shr ecx,8
+    mov al,cl ;起始扇区的中八位
+    out dx,al
+
+    inc dx ;0x1f5
+    shr ecx,8
+    mov al,cl ;起始扇区的高八位
+    out dx,al
+
+    inc dx ;0x1f6
+    shr ecx,8
+    and cl,0b1111 ;将高四位设置为0
+
+    mov al,0b1110_0000
+    or al,cl
+    out dx,al ;主盘 - LBA模式
+
+    inc dx ;0x1f7
+    mov al,0x20 ;读硬盘
+    out dx,al
+
+    xor ecx,ecx
+    mov cl,bl ;获取读扇区到数量
+
+    .read:
+        push cx
+        call .waits ;等待数据准备完毕
+        call .reads ;读取一个扇区
+        pop cx
+        loop .read
+    ret
+
+    .waits:
+        mov dx,0x1f7
+        .check:
+            in al,dx
+            jmp $+2
+            jmp $+2
+            jmp $+2
+            and al,0b1000_1000
+            cmp al,0b0000_1000
+            jnz .check
+        ret
+    
+    .reads:
+        mov dx,0x1f0
+        mov cx,256 ;一个扇区256字
+        .readw:
+            in ax,dx
+            jmp $+2
+            jmp $+2
+            jmp $+2
+            mov [edi],ax
+            add edi,2
+            loop .readw
+        ret
+
 
 code_selector equ (1 << 3)
 data_selector equ (2 << 3)
