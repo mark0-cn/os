@@ -1,10 +1,13 @@
+BUILD=./build
+SRC=./src
 
-%.bin:%.asm
+${BUILD}/boot/%.bin:${SRC}/boot/%.asm
 	nasm -f bin $< -o $@
 	
-all: boot.bin 
+all: ${BUILD}/boot/boot.bin ${BUILD}/boot/loader.bin
 	yes | bximage -q -hd=16 -func=create -sectsize=512 -imgmode=flat master.img
-	dd if=boot.bin of=master.img bs=512 count=1 conv=notrunc
+	dd if=${BUILD}/boot/boot.bin of=master.img bs=512 count=1 conv=notrunc
+	dd if=${BUILD}/boot/loader.bin of=master.img bs=512 count=4 seek=2 conv=notrunc
 
 .PHONY:clean run
 
