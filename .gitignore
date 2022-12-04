@@ -1,4 +1,6 @@
 build
+test
 *.img
 *.bin
 *.DS_store
+.vscode
