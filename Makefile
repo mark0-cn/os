@@ -20,15 +20,16 @@ ${BUILD}/boot/%.bin:${SRC}/boot/%.asm
 
 ${BUILD}/kernel/%.o:${SRC}/kernel/%.asm
 	$(shell mkdir -p $(dir $@))
-	nasm -f elf32 ${DEBUG} $< -o $@
+	nasm -gdwarf -f elf32 ${DEBUG} $< -o $@
 
 ${BUILD}/kernel/%.o:${SRC}/kernel/%.c
 	$(shell mkdir -p $(dir $@))
 	x86_64-elf-gcc ${CFLAGS} ${DEBUG} ${INCLUDE} -c $< -o $@
 
 ${BUILD}/kernel.bin:\
-	${BUILD}/kernel/start.o\
-	${BUILD}/kernel/main.o
+	${BUILD}/kernel/start.o \
+	${BUILD}/kernel/main.o \
+	${BUILD}/kernel/io.o
 	$(shell mkdir -p $(dir $@))
 	x86_64-elf-ld -m elf_i386 -static $^ -o $@ -Ttext ${ENTRYPOINT}
 
@@ -53,10 +54,21 @@ all:${BUILD}/master.img
 
 test:${BUILD}/system.bin
 
-.PHONY:clean run
-
+.PHONY:clean
 clean:
 	rm -rf ${BUILD}
 
-run:
-	bochs -q
+.PHONY:run
+run:${BUILD}/master.img
+	qemu-system-i386 \
+	-m 32M \
+	-boot c \
+	-hda $<
+
+.PHONY:qemug
+qemug:${BUILD}/master.img
+	qemu-system-i386 \
+	-s -S \
+	-m 32M \
+	-boot c \
+	-hda $<
