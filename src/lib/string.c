@@ -1,6 +1,16 @@
 #include <os/string.h>
 
-char* strcpy(char* dest,const char* src);
+char* strcpy(char* dest,const char* src)
+{
+    char* ptr=dest;
+    while(*src!=EOS)
+    {
+        *ptr++=*src++;
+    }
+    *ptr=EOS;
+    return dest;
+}
+
 char* strcat(char* dest,const char* src)
 {
     char* ptr=dest;
@@ -8,14 +18,12 @@ char* strcat(char* dest,const char* src)
         ptr++;
     }
 
-    while(true)
+    while(*src!=EOS)
     {
-        *ptr++ = *src;
-        if (*src++ == EOS)
-        {
-            return dest;
-        }
+        *ptr++=*src++;
     }
+    *ptr=EOS;
+    return dest;
 }
 
 size_t strlen(const char* str)
@@ -29,11 +37,66 @@ size_t strlen(const char* str)
     return count;
 }
 
-int strcmp(const char* lhs,const char* rhs);
-char* strchr(const char* str,int ch);
-char* strrchr(const char* str,int ch);
+int strcmp(const char* lhs,const char* rhs)
+{
+    while(*lhs!=EOS && *rhs!=EOS && *lhs==*rhs)
+    {
+        lhs++;
+        rhs++;
+    }
+    return *lhs<*rhs?-1:*lhs>*rhs;
+}
 
-int memcmp(const void* lhs,const void* rhs,size_t count);
+char* strchr(const char* str,int ch)
+{
+    char* ptr=str;
+    while(*ptr!=EOS)
+    {
+        ptr++;
+        if(*ptr==ch)
+        {
+            return *ptr;
+        }
+    }
+    return NULL;
+}
+
+char* strrchr(const char* str,int ch)
+{
+    char* ptr=str;
+    long count=0;
+
+    while(*ptr!=EOS)
+    {
+        count++;
+        ptr++;
+    }
+
+    while(count--)
+    {
+        if(*ptr==ch)
+        {
+            return ptr;
+        }
+        ptr--;
+    }
+    return NULL;
+}
+
+int memcmp(const void* lhs,const void* rhs,size_t count)
+{
+    char *lptr = (char *)lhs;
+    char *rptr = (char *)rhs;
+    while ((count > 0) && *lptr == *rptr)
+    {
+        lptr++;
+        rptr++;
+        count--;
+    }
+    if (count == 0)
+        return 0;
+    return *lptr < *rptr ? -1 : *lptr > *rptr;
+}
 
 void* memset(void* dest,int ch,size_t count)
 {
@@ -42,6 +105,7 @@ void* memset(void* dest,int ch,size_t count)
     {
         *ptr++=ch;
     }
+    return dest;
 }
 
 void* memcpy(void* dest,const void* src,size_t count)
@@ -51,6 +115,21 @@ void* memcpy(void* dest,const void* src,size_t count)
     {
         *ptr++=*(char*)src++;
     }
+    return dest;
     
 }
-void* memchr(const void* ptr,int ch,size_t count);
+
+void* memchr(const void* mem,int ch,size_t count)
+{
+    char* ptr=(char*)mem;
+
+    while(count--)
+    {
+        if(*ptr==ch)
+        {
+            return ptr;
+        }
+        ptr++;
+    }
+    return NULL;
+}
