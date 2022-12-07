@@ -3,6 +3,8 @@
 
 #define true (1)
 #define false (0)
+#define NULL (0)
+#define nullptr ((void*)0)
 #define EOS ('\0')
 #define _packed __attributes__((packed))
 
