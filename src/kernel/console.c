@@ -1,4 +1,5 @@
 #include <os/io.h>
+#include <os/string.h>
 #include <os/console.h>
 
 #define CRT_ADDR_REG 0x3D4 // CRT(6845)索引寄存器
@@ -37,6 +38,17 @@ static u32 x, y; // 当前光标的坐标
 static u8 attr = 7;        // 字符样式
 static u16 erase = 0x0720; // 空格
 
+void get_screen()
+{
+    outb(CRT_ADDR_REG,CRT_START_ADDR_H);
+    screen=inb(CRT_DATA_REG)<<8;
+    outb(CRT_ADDR_REG,CRT_START_ADDR_L);
+    screen|=inb(CRT_DATA_REG);
+
+    screen<<=1;
+    screen+=MEM_BASE;
+}
+
 void get_cursor()
 {
     outb(CRT_ADDR_REG,CRT_CURSOR_H);
@@ -52,6 +64,7 @@ void get_cursor()
     u32 data=(pos-screen)>>1;
     x=data/WIDTH;
     y=data%WIDTH;
+    return;
 }
 
 void set_cursor()
@@ -62,23 +75,69 @@ void set_cursor()
     outb(CRT_DATA_REG,(pos-MEM_BASE)>>1&0xff);
 }
 
-void get_screen()
-{
-    outb(CRT_ADDR_REG,CRT_START_ADDR_H);
-    screen=inb(CRT_DATA_REG)<<8;
-    outb(CRT_ADDR_REG,CRT_START_ADDR_L);
-    screen|=inb(CRT_DATA_REG);
-
-    screen<<=1;
-    screen+=MEM_BASE;
-}
-
 void set_screen()
 {
     outb(CRT_ADDR_REG,CRT_START_ADDR_H);
     outb(CRT_DATA_REG,(screen-MEM_BASE)>>9&0xff);
     outb(CRT_ADDR_REG,CRT_START_ADDR_L);
     outb(CRT_DATA_REG,(screen-MEM_BASE)>>1&0xff);
+}
+
+// 向上滚屏
+static void scroll_up()
+{
+    if (screen + SCR_SIZE + ROW_SIZE >= MEM_END)
+    {
+        memcpy((void *)MEM_BASE, (void *)screen, SCR_SIZE);
+        pos -= (screen - MEM_BASE);
+        screen = MEM_BASE;
+    }
+
+    u32 *ptr = (u32 *)(screen + SCR_SIZE);
+    for (size_t i = 0; i < WIDTH; i++)
+    {
+        *ptr++ = erase;
+    }
+    screen += ROW_SIZE;
+    pos += ROW_SIZE;
+    set_screen();
+}
+
+//光标向下移动一个单位
+static void commond_lf()
+{
+    if(y+1<HEIGHT)
+    {
+        y++;
+        pos+=ROW_SIZE;
+        return;
+    }
+    scroll_up();
+}
+
+//光标移动到最左边
+static void commond_cr()
+{
+    pos-=(x<<1);
+    x=0;
+    return;
+}
+
+//光标回退并删除当前一个字符
+static void commond_bs()
+{
+    if(x)
+    {
+        x--;
+        pos-=2;
+        *(u32*)pos=erase;
+    }
+}
+
+//删除当前字符
+static void commond_del()
+{
+    *(u32*)pos=erase;
 }
 
 void console_init()
@@ -118,29 +177,36 @@ void console_write(char* buf,u32 count)
             break;
         case ASCII_ENQ:
             break;
-        case ASCII_BEL:
+        case ASCII_BEL:     // \a
             break;
-        case ASCII_BS:
+        case ASCII_BS:      // \b
+            commond_bs();
             break;
-        case ASCII_HT:
+        case ASCII_HT:      // \t
             break;
-        case ASCII_LF:
+        case ASCII_LF:      // \n
+            commond_lf();
+            commond_cr();
             break;
-        case ASCII_VT:
+        case ASCII_VT:      // \v
             break;
-        case ASCII_FF:
+        case ASCII_FF:      // \f
             break;
-        case ASCII_CR:
+        case ASCII_CR:      // \r
+            commond_cr();
             break;
         case ASCII_DEL:
+            commond_del();
             break;
         default:
             *(char*)pos=ch;
             pos++;
             *(char*)pos=attr;
             pos++;
+
+            x++;
             break;
         }
     }
-    
+    set_cursor();
 }
