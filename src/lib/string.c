@@ -49,13 +49,13 @@ int strcmp(const char* lhs,const char* rhs)
 
 char* strchr(const char* str,int ch)
 {
-    char* ptr=str;
+    char* ptr=(char*)str;
     while(*ptr!=EOS)
     {
         ptr++;
         if(*ptr==ch)
         {
-            return *ptr;
+            return ptr;
         }
     }
     return NULL;
@@ -63,7 +63,7 @@ char* strchr(const char* str,int ch)
 
 char* strrchr(const char* str,int ch)
 {
-    char* ptr=str;
+    char* ptr=(char*)str;
     long count=0;
 
     while(*ptr!=EOS)
