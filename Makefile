@@ -30,8 +30,10 @@ ${BUILD}/kernel.bin:\
 	${BUILD}/kernel/start.o \
 	${BUILD}/kernel/main.o \
 	${BUILD}/kernel/io.o \
+	${BUILD}/kernel/printk.o \
+	${BUILD}/kernel/console.o \
 	${BUILD}/lib/string.o \
-	${BUILD}/kernel/console.o 
+	${BUILD}/lib/vsprintf.o \
 
 	$(shell mkdir -p $(dir $@))
 	x86_64-elf-ld -m elf_i386 -static $^ -o $@ -Ttext ${ENTRYPOINT}
@@ -69,7 +71,7 @@ run:${BUILD}/master.img
 	-hda $<
 
 .PHONY:qemug
-qemug:${BUILD}/master.img
+debug:${BUILD}/master.img
 	qemu-system-i386 \
 	-s -S \
 	-m 32M \
