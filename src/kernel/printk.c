@@ -10,11 +10,8 @@ int printk(const char* fmt, ...)
     int i;
 
     va_start(args,fmt);
-
     i=vsprintf(buf,fmt,args);
-
     va_end(args);
-
     console_write(buf,i);
 
     return i;
