@@ -6,7 +6,7 @@
 #define NULL (0)
 #define nullptr ((void*)0)
 #define EOS ('\0')
-#define _packed __attributes__((packed))
+#define _packed __attribute__((packed))
 
 typedef char int8;
 typedef short int16;
