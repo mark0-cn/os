@@ -37,6 +37,7 @@ ${BUILD}/kernel.bin:\
 	${BUILD}/kernel/task.o \
 	${BUILD}/kernel/schedule.o \
 	${BUILD}/kernel/global.o \
+	${BUILD}/kernel/interrupt.o \
 	${BUILD}/lib/string.o \
 	${BUILD}/lib/vsprintf.o \
 
