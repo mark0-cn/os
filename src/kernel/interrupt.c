@@ -5,11 +5,8 @@
 gate_t idt[IDT_SIZE];
 pointer_t idt_ptr;
 
-void interrupt_handler()
-{
-    printk("interrupt_handler ...\n");
-    asm volatile("iret\n");
-}
+extern void interrupt_handler();
+
 
 void interrupt_init()
 {

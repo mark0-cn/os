@@ -6,4 +6,5 @@ global _start
 
 _start:
     call kernel_init
+    int 0x80
     jmp $
