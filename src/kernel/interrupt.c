@@ -1,6 +1,7 @@
 #include <os/interrupt.h>
 #include <os/global.h>
 #include <os/printk.h>
+#include <os/io.h>
 
 gate_t idt[IDT_SIZE];
 pointer_t idt_ptr;
@@ -56,18 +57,32 @@ void send_eoi(int vector)
     }
 }
 
-void exception_handler(int vector)
+void exception_handler(
+    int vector,
+    u32 edi, u32 esi, u32 ebp, u32 esp,
+    u32 ebx, u32 edx, u32 ecx, u32 eax,
+    u32 gs, u32 fs, u32 es, u32 ds,
+    u32 vector0, u32 error, u32 eip, u32 cs, u32 eflags)
 {
-    char* message = NULL;
-    if(vector < 22)
+    char *message = NULL;
+    if (vector < 22)
     {
         message = messages[vector];
-    }else
+    }
+    else
     {
         message = messages[15];
     }
-    printk("Exception : [0x%02x] %s \n", vector, messages[vector]);
-    while (true);    
+
+    printk("\nEXCEPTION : %s \n", messages[vector]);
+    printk("   VECTOR : 0x%02X\n", vector);
+    printk("    ERROR : 0x%08X\n", error);
+    printk("   EFLAGS : 0x%08X\n", eflags);
+    printk("       CS : 0x%02X\n", cs);
+    printk("      EIP : 0x%08X\n", eip);
+    printk("      ESP : 0x%08X\n", esp);
+    // 阻塞
+    while (1);
 }
 
 // 初始化中断控制器
@@ -87,10 +102,12 @@ void pic_init()
     outb(PIC_S_DATA, 0b11111111); // 关闭所有中断
 }
 
+extern void schedule();
+
 void default_handler(int vector)
 {
     send_eoi(vector);
-    printk("[%x] default interrupt called...\n", vector);
+    schedule();
 }
 
 void idt_init()

@@ -1,6 +1,8 @@
 
 global task_switch
 
+section .text
+global task_switch
 task_switch:
     push ebp
     mov ebp, esp
