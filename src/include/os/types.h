@@ -7,6 +7,8 @@
 #define nullptr ((void*)0)
 #define EOS ('\0')
 #define _packed __attribute__((packed))
+// 用于省略函数的栈帧
+#define _ofp __attribute__((optimize("omit-frame-pointer")))
 
 typedef char int8;
 typedef short int16;
