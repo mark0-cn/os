@@ -61,5 +61,5 @@ void task_init()
 {
     task_create(a,(task_t*)thread_a);
     task_create(b,(task_t*)thread_b);
-    // schedule();
+    schedule();
 }
